@@ -1,11 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from models import VideoRequest, ChatRequest
 from rag import YouTubeRAG
-from models import (
-    VideoRequest,
-    ChatRequest,
-)
 
 app = FastAPI()
 
@@ -17,13 +14,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize only when required
-rag = None
+rag = YouTubeRAG()
 
 
 @app.get("/")
 def home():
-
     return {
         "message": "Backend Running"
     }
@@ -32,30 +27,35 @@ def home():
 @app.post("/process-video")
 def process_video(request: VideoRequest):
 
-    global rag
+    try:
+        rag.process_video(request.url)
 
-    if rag is None:
-        rag = YouTubeRAG()
+        return {
+            "status": "success"
+        }
 
-    rag.process_video(request.url)
+    except Exception as e:
 
-    return {
-        "status": "success"
-    }
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
 
 
 @app.post("/chat")
 def chat(request: ChatRequest):
 
-    global rag
+    try:
 
-    if rag is None:
+        answer = rag.ask(request.question)
+
         return {
-            "answer": "Please process a video first."
+            "answer": answer
         }
 
-    answer = rag.ask(request.question)
+    except Exception as e:
 
-    return {
-        "answer": answer
-    }
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
