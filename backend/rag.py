@@ -28,17 +28,25 @@ class YouTubeRAG:
     def __init__(self):
 
         self.chain = None
+        self.embeddings = None
+        self.model = None
 
-        self.embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
+    def initialize_models(self):
 
-        llm = HuggingFaceEndpoint(
-            repo_id="meta-llama/Llama-3.1-8B-Instruct",
-            task="text-generation",
-        )
+        if self.embeddings is None:
 
-        self.model = ChatHuggingFace(llm=llm)
+            self.embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2"
+            )
+
+        if self.model is None:
+
+            llm = HuggingFaceEndpoint(
+                repo_id="meta-llama/Llama-3.1-8B-Instruct",
+                task="text-generation",
+            )
+
+            self.model = ChatHuggingFace(llm=llm)
 
     def extract_video_id(self, url):
 
@@ -55,11 +63,15 @@ class YouTubeRAG:
 
     def process_video(self, url):
 
+        # Load models only when needed
+        self.initialize_models()
+
         video_id = self.extract_video_id(url)
 
-        api = YouTubeTranscriptApi()
-
-        transcript = api.fetch(video_id, languages=["en"])
+        transcript = YouTubeTranscriptApi().fetch(
+            video_id,
+            languages=["en"],
+        )
 
         transcript = " ".join(
             chunk.text for chunk in transcript
@@ -120,5 +132,8 @@ Question:
         )
 
     def ask(self, question):
+
+        if self.chain is None:
+            raise Exception("Process a video first.")
 
         return self.chain.invoke(question)

@@ -17,17 +17,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-rag = YouTubeRAG()
+# Initialize only when required
+rag = None
 
 
 @app.get("/")
 def home():
 
-    return {"message": "Backend Running"}
+    return {
+        "message": "Backend Running"
+    }
 
 
 @app.post("/process-video")
 def process_video(request: VideoRequest):
+
+    global rag
+
+    if rag is None:
+        rag = YouTubeRAG()
 
     rag.process_video(request.url)
 
@@ -38,6 +46,13 @@ def process_video(request: VideoRequest):
 
 @app.post("/chat")
 def chat(request: ChatRequest):
+
+    global rag
+
+    if rag is None:
+        return {
+            "answer": "Please process a video first."
+        }
 
     answer = rag.ask(request.question)
 
