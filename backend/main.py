@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import VideoRequest, ChatRequest
+from models import TranscriptRequest, ChatRequest
 from rag import YouTubeRAG
 
 app = FastAPI()
@@ -24,18 +24,26 @@ def home():
     }
 
 
-@app.post("/process-video")
-def process_video(request: VideoRequest):
+@app.post("/process-transcript")
+def process_transcript(request: TranscriptRequest):
 
     try:
-        rag.process_video(request.url)
+        if not request.transcript or not request.transcript.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Transcript is empty.",
+            )
+
+        rag.process_transcript(request.transcript)
 
         return {
             "status": "success"
         }
 
-    except Exception as e:
+    except HTTPException:
+        raise
 
+    except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=str(e),

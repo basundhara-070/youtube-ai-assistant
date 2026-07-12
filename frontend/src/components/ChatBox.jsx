@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 
-import api from "@/services/api";
+import api from "../services/api";
 
 import ChatInput from "./ChatInput";
 import Message from "./Message";

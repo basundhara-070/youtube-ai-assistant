@@ -1,6 +1,5 @@
-from urllib.parse import urlparse, parse_qs
-
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -53,19 +52,9 @@ Question:
             input_variables=["context", "question"],
         )
 
-    def extract_video_id(self, url):
-
-        if "youtu.be" in url:
-            return url.split("/")[-1].split("?")[0]
-
-        parsed = urlparse(url)
-        return parse_qs(parsed.query)["v"][0]
-
-    def process_video(self, url):
+    def process_transcript(self, transcript):
 
         self.initialize()
-
-        from youtube_transcript_api import YouTubeTranscriptApi
 
         from langchain_text_splitters import (
             RecursiveCharacterTextSplitter,
@@ -73,14 +62,10 @@ Question:
 
         from langchain_community.vectorstores import FAISS
 
-        video_id = self.extract_video_id(url)
+        text = transcript.strip()
 
-        transcript = YouTubeTranscriptApi().fetch(
-            video_id,
-            languages=["en"],
-        )
-
-        text = " ".join(chunk.text for chunk in transcript)
+        if not text:
+            raise ValueError("Transcript is empty.")
 
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,

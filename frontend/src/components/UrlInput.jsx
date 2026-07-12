@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/services/api";
+import api from "../services/api";
 import Loader from "./Loader";
 
 export default function UrlInput({ onSuccess, setStatus, setStatusType }) {
@@ -19,14 +19,30 @@ export default function UrlInput({ onSuccess, setStatus, setStatusType }) {
             setLoading(true);
             setStatus("");
 
-            await api.post("/process-video", { url });
+            const transcriptResponse = await fetch("/api/transcript", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ url }),
+            });
+
+            const transcriptData = await transcriptResponse.json();
+
+            if (!transcriptResponse.ok) {
+                throw new Error(transcriptData.message || "Unable to fetch transcript.");
+            }
+
+            await api.post("/process-transcript", {
+                transcript: transcriptData.transcript,
+            });
 
             setStatus("Video processed successfully.");
             setStatusType("success");
             onSuccess();
         } catch (err) {
             console.log(err);
-            setStatus("Unable to process this video.");
+            setStatus(err.message || "Unable to process this video.");
             setStatusType("error");
         } finally {
             setLoading(false);

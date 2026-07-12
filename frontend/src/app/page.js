@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
-import Navbar from "@/components/Navbar";
-import UrlInput from "@/components/UrlInput";
-import StatusMessage from "@/components/StatusMessage";
-import ChatBox from "@/components/ChatBox";
+import Navbar from "../components/Navbar";
+import UrlInput from "../components/UrlInput";
+import StatusMessage from "../components/StatusMessage";
+import ChatBox from "../components/ChatBox";
 
 export default function Home() {
     const [status, setStatus] = useState("");
