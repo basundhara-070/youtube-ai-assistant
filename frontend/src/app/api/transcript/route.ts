@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import { YoutubeTranscript } from "youtube-transcript";
 
+function isTranscriptBlockedError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+        return false;
+    }
+
+    const message = error.message.toLowerCase();
+    return (
+        message.includes("transcript is disabled") ||
+        message.includes("transcript unavailable") ||
+        message.includes("video unavailable") ||
+        message.includes("too many requests") ||
+        message.includes("failed to fetch")
+    );
+}
+
 function isValidYouTubeUrl(value: string): boolean {
     try {
         const parsed = new URL(value);
@@ -75,9 +90,31 @@ export async function POST(request: Request) {
     } catch (error: unknown) {
         const message =
             error instanceof Error ? error.message : "Transcript API failure.";
+        const stack = error instanceof Error ? error.stack : undefined;
+
+        console.error("Transcript route error:", {
+            message,
+            stack,
+        });
+
+        if (isTranscriptBlockedError(error)) {
+            return NextResponse.json(
+                {
+                    message:
+                        "Transcript retrieval is blocked for this video from the hosting environment. Please try a different public video with captions enabled.",
+                    details: message,
+                    stack,
+                },
+                { status: 502 }
+            );
+        }
 
         return NextResponse.json(
-            { message: message || "Transcript API failure." },
+            {
+                message: message || "Transcript API failure.",
+                details: message,
+                stack,
+            },
             { status: 502 }
         );
     }
