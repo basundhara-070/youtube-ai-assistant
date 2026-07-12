@@ -10,6 +10,24 @@ function isValidYouTubeUrl(value: string): boolean {
     }
 }
 
+function extractVideoId(value: string): string {
+    if (!value) {
+        return "";
+    }
+
+    if (value.includes("youtu.be/")) {
+        return value.split("/").filter(Boolean).pop()?.split("?")[0] || "";
+    }
+
+    try {
+        const parsed = new URL(value);
+        const videoId = parsed.searchParams.get("v");
+        return videoId || "";
+    } catch {
+        return value;
+    }
+}
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
@@ -29,7 +47,18 @@ export async function POST(request: Request) {
             );
         }
 
-        const transcriptItems = await YoutubeTranscript.fetchTranscript(url);
+        const videoId = extractVideoId(url);
+
+        if (!videoId) {
+            return NextResponse.json(
+                { message: "Could not determine the YouTube video ID." },
+                { status: 400 }
+            );
+        }
+
+        const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, {
+            fetch: globalThis.fetch,
+        });
         const transcript = transcriptItems
             .map((item) => item.text)
             .join(" ")
