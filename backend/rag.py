@@ -36,7 +36,7 @@ class YouTubeRAG:
         if self.embeddings is None:
 
             self.embeddings = HuggingFaceEndpointEmbeddings(
-                model_name="sentence-transformers/all-MiniLM-L6-v2"
+                model="sentence-transformers/all-MiniLM-L6-v2"
             )
 
         if self.model is None:
