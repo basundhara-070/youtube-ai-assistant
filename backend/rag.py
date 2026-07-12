@@ -4,7 +4,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import (
-    HuggingFaceEmbeddings,
+    HuggingFaceEndpointEmbeddings,
     HuggingFaceEndpoint,
     ChatHuggingFace,
 )
@@ -35,7 +35,7 @@ class YouTubeRAG:
 
         if self.embeddings is None:
 
-            self.embeddings = HuggingFaceEmbeddings(
+            self.embeddings = HuggingFaceEndpointEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2"
             )
 
