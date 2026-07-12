@@ -71,9 +71,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, {
-            fetch: globalThis.fetch,
-        });
+        const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
         const transcript = transcriptItems
             .map((item) => item.text)
             .join(" ")
@@ -101,7 +99,7 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 {
                     message:
-                        "Transcript retrieval is blocked for this video from the hosting environment. Please try a different public video with captions enabled.",
+                        "This video does not provide a transcript or captions are disabled. Please try a different public video with captions enabled.",
                     details: message,
                     stack,
                 },
